@@ -1,0 +1,136 @@
+version: "1"
+
+package:
+  id: io.github.lime3ds.Lime3DS
+  name: Lime3DS
+  version: 2116.0.0.0
+  kind: app
+  description: |
+    A Nintendo 3DS emulator based on Citra
+
+base: org.deepin.foundation/23.0.0
+runtime: org.deepin.Runtime/23.0.1
+
+command:
+  - /opt/apps/io.github.lime3ds.Lime3DS/files/bin/lime3ds-gui
+
+
+build: |
+  # install packages
+  install_pkg=$(realpath "./install_pkg.sh")
+  include_pkg=''
+  exclude_pkg=''
+  bash $install_pkg -i -d $(realpath 'linglong/sources') -p $PREFIX -I \"$include_pkg\" -E \"$exclude_pkg\"
+  
+  # build ninja
+  cd /project/linglong/sources/ninja.git
+  cmake -Bbuild
+  cmake --build build -j$(nproc)
+  ninja="$(pwd)/build/ninja"
+  
+  # build Lime3DS
+  cd /project/linglong/sources/Lime3DS.git
+  # fix BUILD_VERSION
+  echo -n '' > GIT-COMMIT
+  echo '2116' > GIT-TAG
+  export EXTRA_CMAKE_FLAGS=(-DCITRA_USE_PRECOMPILED_HEADERS=OFF)
+  cmake -Bbuild \
+        -G Ninja \
+        -DCMAKE_MAKE_PROGRAM=$ninja \
+        -DCMAKE_BUILD_TYPE=Release \
+        "${EXTRA_CMAKE_FLAGS[@]}" \
+        -DENABLE_QT_TRANSLATION=ON \
+        -DCITRA_ENABLE_COMPATIBILITY_REPORTING=ON \
+        -DENABLE_COMPATIBILITY_LIST_DOWNLOAD=ON \
+        -DUSE_DISCORD_PRESENCE=ON \
+        -DCMAKE_INSTALL_PREFIX=$PREFIX
+  cmake --build build -j2
+  strip -s build/bin/Release/*
+  cmake --install build
+  # fix qt plugin path
+  {
+    echo "[Paths]"
+    echo "Prefix=$PREFIX"
+    echo "Plugins=lib/$TRIPLET/qt6/plugins"
+  } > "$PREFIX/bin/qt.conf"
+  
+  # uninstall dev packages
+  bash $install_pkg -u -r '\-dev|qmake6|tools' -D
+
+
+sources:
+  # ninja
+  - kind: git
+    url: https://github.com/ninja-build/ninja.git
+    version: v1.12.1
+    commit: 2daa09ba270b0a43e1929d29b073348aa985dfaa
+  # Lime3DS
+  - kind: git
+    url: https://github.com/Lime3DS/Lime3DS.git
+    version: "2116"
+    commit: 90ebe220b200ba1d6b79a1d7fe3ef7f590c09453
+  # packages: qt6-base-dev,qt6-base-dev-tools,qmake6,libqt6core6,libqt6gui6,libqt6widgets6,libqt6dbus6,qt6-multimedia-dev,libqt6multimedia6,libqt6network6,libqt6concurrent6,qt6-tools-dev,qt6-tools-dev-tools,qt6-l10n-tools,libicu74,libb2-1,qt6-base-private-dev,libxcb-cursor0,dde-qt6xcb-plugin,libqt6opengl6,xdg-utils
+  - kind: file
+    url: https://mirrors.ustc.edu.cn/deepin/beige/pool/main/q/qt6-base/qt6-base-dev_6.6.1+dfsg-5deepin3_amd64.deb
+    digest: ddf085e376442b2f6957340899e4d9269ca0ff84c05aaa0cf4f3ba10e283b434
+  - kind: file
+    url: https://mirrors.ustc.edu.cn/deepin/beige/pool/main/q/qt6-base/qt6-base-dev-tools_6.6.1+dfsg-5deepin3_amd64.deb
+    digest: ad1bf389327cb6f3b0c6921db5eb4f61e8e2ba702404403d0364349ff44bf9b2
+  - kind: file
+    url: https://mirrors.ustc.edu.cn/deepin/beige/pool/main/q/qt6-base/qmake6_6.6.1+dfsg-5deepin3_amd64.deb
+    digest: fa9959413d9df456ac69afcf3e876c6911fe4cb60a0c0be13cedf09e5ae75d26
+  - kind: file
+    url: https://mirrors.ustc.edu.cn/deepin/beige/pool/main/q/qt6-base/libqt6core6_6.6.1+dfsg-5deepin3_amd64.deb
+    digest: be41af480581396f074efe78910eca4fb0425dd8e292b700616cdb79977cfe74
+  - kind: file
+    url: https://mirrors.ustc.edu.cn/deepin/beige/pool/main/q/qt6-base/libqt6gui6_6.6.1+dfsg-5deepin3_amd64.deb
+    digest: 1c8fb9dfe6c48909448ba73f57e341c0c9351b17bb81910df760f459ed590207
+  - kind: file
+    url: https://mirrors.ustc.edu.cn/deepin/beige/pool/main/q/qt6-base/libqt6widgets6_6.6.1+dfsg-5deepin3_amd64.deb
+    digest: 5d22275db35cbc5bc2c3e34c6f5eb74e6c04eb8b4c81ef2e8c436ed1d7a936ae
+  - kind: file
+    url: https://mirrors.ustc.edu.cn/deepin/beige/pool/main/q/qt6-base/libqt6dbus6_6.6.1+dfsg-5deepin3_amd64.deb
+    digest: 4ca32aeab9c2256325e5cb1fd459a06d3d85fa705433f310354f81994550208d
+  - kind: file
+    url: https://mirrors.ustc.edu.cn/deepin/beige/pool/main/q/qt6-multimedia/qt6-multimedia-dev_6.6.1-2_amd64.deb
+    digest: e15932e7165421e71af788aedb1d107d5a5cd4fe4543ab15a4757d8106da9ed3
+  - kind: file
+    url: https://mirrors.ustc.edu.cn/deepin/beige/pool/main/q/qt6-multimedia/libqt6multimedia6_6.6.1-2_amd64.deb
+    digest: 02b1abffced04a0d8374c08c8d128e9108b49a007bdcb42f54c4679596792982
+  - kind: file
+    url: https://mirrors.ustc.edu.cn/deepin/beige/pool/main/q/qt6-base/libqt6network6_6.6.1+dfsg-5deepin3_amd64.deb
+    digest: 85a22379e0e0509eba507e773541e852aa694623d1376b688f6f508618d3f86a
+  - kind: file
+    url: https://mirrors.ustc.edu.cn/deepin/beige/pool/main/q/qt6-base/libqt6concurrent6_6.6.1+dfsg-5deepin3_amd64.deb
+    digest: 4d977bdb9f2f34c5b59e0f8d799177a236d6813c4cd6503845dea06462ea91c6
+  - kind: file
+    url: https://mirrors.ustc.edu.cn/deepin/beige/pool/main/q/qt6-tools/qt6-tools-dev_6.6.1-1_amd64.deb
+    digest: 07cddc96e42ef824a6e8b0546279d0e1d696d604e175895811277a9e5ad21df3
+  - kind: file
+    url: https://mirrors.ustc.edu.cn/deepin/beige/pool/main/q/qt6-tools/qt6-tools-dev-tools_6.6.1-1_amd64.deb
+    digest: 8a37341ac796555685b17ef0c228e8a561d30f92c9bd8619be5cca27b9e2a81f
+  - kind: file
+    url: https://mirrors.ustc.edu.cn/deepin/beige/pool/main/q/qt6-tools/qt6-l10n-tools_6.6.1-1_amd64.deb
+    digest: a9dce3450a8d8fa97e8966ffc2cb927f4ffdb5673048bf4dd04b4d35d4e42c6f
+  - kind: file
+    url: https://mirrors.ustc.edu.cn/deepin/beige/pool/main/i/icu/libicu74_74.2-1_amd64.deb
+    digest: ad3f769fb52e996fad6d8dd369ab7a09f558b221ddc7647164ab8cc0bd8fa245
+  - kind: file
+    url: https://mirrors.ustc.edu.cn/deepin/beige/pool/main/libb/libb2/libb2-1_0.98.1-1.1_amd64.deb
+    digest: ad82b2de93cc49cdf37c861b03275245318b1555255639e5e805cf612a40171e
+  - kind: file
+    url: https://mirrors.ustc.edu.cn/deepin/beige/pool/main/q/qt6-base/qt6-base-private-dev_6.6.1+dfsg-5deepin3_amd64.deb
+    digest: d7d99eb3fdd70034fbdfd2def517d10c84044ec94f003bfd0cbc7be7d0f45913
+  - kind: file
+    url: https://mirrors.ustc.edu.cn/deepin/beige/pool/main/x/xcb-util-cursor/libxcb-cursor0_0.1.1-4_amd64.deb
+    digest: f3575052a14a5ec2d016bc667d466fc5bceec389db5b6ad9ab03ca53b50411f6
+  - kind: file
+    url: https://mirrors.ustc.edu.cn/deepin/beige/pool/main/d/dde-qt6platform-plugins/dde-qt6xcb-plugin_6.0.16_amd64.deb
+    digest: dbe847f7586b7ae2e7194af03995b92742110e3e80bd21d0fcee5136d6523e2a
+  - kind: file
+    url: https://mirrors.ustc.edu.cn/deepin/beige/pool/main/q/qt6-base/libqt6opengl6_6.6.1+dfsg-5deepin3_amd64.deb
+    digest: 7cf93e172a9a678caf7903563b9eb7e880e5fc6da21a1c4f9fc3259e26444d3e
+  - kind: file
+    url: https://mirrors.ustc.edu.cn/deepin/beige/pool/main/x/xdg-utils/xdg-utils_1.1.3-4.1deepin1_all.deb
+    digest: d5e090896201fb8fa27fa3d42f2c56de7822c26b8b5f8d9c6c44da690f887c1a
+  

@@ -1,0 +1,6 @@
+PACKAGE_ID=io.github.lime3ds.Lime3DS
+PACKAGE_NAME=Lime3DS
+PACKAGE_VERSION=2116.0.0.0
+PACKAGE_DESCRIPTION=A Nintendo 3DS emulator based on Citra
+COMMAND=
+COMMAND_BIN=lime3ds-gui
