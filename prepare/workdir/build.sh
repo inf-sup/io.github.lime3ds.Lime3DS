@@ -12,6 +12,9 @@ ninja="$(pwd)/build/ninja"
 
 # build Lime3DS
 cd /project/linglong/sources/Lime3DS.git
+# mv rapidjson
+mkdir -p externals/discord-rpc/thirdparty
+mv /project/linglong/sources/rapidjson.git externals/discord-rpc/thirdparty/rapidjson-1.1.0
 # fix BUILD_VERSION
 echo -n '' > GIT-COMMIT
 echo '2116' > GIT-TAG
