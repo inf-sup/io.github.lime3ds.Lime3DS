@@ -16,12 +16,8 @@ function get_commit() {
     baseurl='https://api.github.com'
     full_name="$1"
     tag="$2"
-    query_url_t="$baseurl/repos/$full_name/git/refs/tags/$tag"
-    query_url_b="$baseurl/repos/$full_name/commits/$tag"
-    commit=$(curl -s "$query_url_t" | grep 'sha' | head -n 1 | sed -r 's#"sha": "([0-9a-f]+)".*#\1#')
-    if [ -z "$commit" ]; then
-        commit=$(curl -s "$query_url_b" | grep 'sha' | head -n 1 | sed -r 's#"sha": "([0-9a-f]+)".*#\1#')
-    fi
+    query_url="$baseurl/repos/$full_name/commits/$tag"
+    commit=$(curl -s "$query_url" | grep 'sha' | head -n 1 | sed -r 's#.*"sha": "([0-9a-f]+)".*#\1#')
     echo $commit
 }
 

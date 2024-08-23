@@ -10,7 +10,6 @@ dir=$(cd $(dirname $0); pwd)
 dir=${dir%/prepare*}
 # pkg_dir 软件包信息存储目录
 pkg="$dir/prepare/resources/file/package"
-mkdir -p $pkg
 pkg_p="$pkg/Packages"
 pkg_c="$pkg/Contents"
 

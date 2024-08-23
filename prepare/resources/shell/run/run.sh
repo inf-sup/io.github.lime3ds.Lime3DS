@@ -23,7 +23,9 @@ while getopts 'hbreyCOB' OPT; do
     e) mode="export" ;;
     y) yaml="true" ;;
     C) build_option="$build_option  --skip-commit-output" ;;
-    O) build_option="$build_option  --offline"; offline="true" ;;
+    O) build_option="$build_option  --offline"
+       run_option="$run_option  --offline"
+       offline="true" ;;
     B) run_option="$run_option  --exec bash" ;;
     h) help ;;
     ?) help ;;
@@ -38,11 +40,12 @@ cd $dir
 gen_yaml="$dir/prepare/resources/shell/gen_yaml/gen_yaml.sh"
 info="$dir/prepare/workdir/project.info"
 git_list="$dir/prepare/workdir/git.list"
+file_list="$dir/prepare/workdir/file.list"
 pkg_list="$dir/prepare/workdir/pkg.list"
 build_sh="$dir/prepare/workdir/build.sh"
 
 if [ -n "$yaml" ]; then
-    bash $gen_yaml $info $git_list $pkg_list $build_sh "$dir/linglong.yaml"
+    bash $gen_yaml $info $git_list $file_list $pkg_list $build_sh "$dir/linglong.yaml"
 fi
 
 case $mode in
