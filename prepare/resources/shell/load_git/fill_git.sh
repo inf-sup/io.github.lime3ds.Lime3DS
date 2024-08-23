@@ -32,7 +32,7 @@ while IFS= read -r line; do
     elif [ "${line:0:8}" == 'version=' ]; then
         version="${line#*=}"
         v="set"
-        if grep -qE '^[0-9]+$' <<< "$version";then version="\"$version\"";fi
+        if grep -qE '^[0-9]+(\.[0-9]+)?$' <<< "$version";then version="\"$version\"";fi
     elif [ "${line:0:7}" == 'commit=' ]; then
         commit="${line#*=}"
         c="set"
